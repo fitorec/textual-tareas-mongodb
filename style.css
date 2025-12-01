@@ -1,4 +1,135 @@
+/* =========================================================
+   ESTILOS GENERALES
+   ========================================================= */
 
+Screen {
+    layout: vertical;
+    background: $background;
+    color: $text;
+}
+
+
+/* =========================================================
+   TABLA PRINCIPAL
+   ========================================================= */
+
+#task_table {
+    width: 100%;
+    height: 1fr;
+    border: solid $accent;   /* sintaxis válida */
+    margin: 1;
+}
+
+/* encabezado de la tabla */
+#task_table > .datatable--header {
+    background: $boost;
+    color: $text;
+    text-style: bold;
+}
+
+/* fila seleccionada */
+#task_table .datatable--row-selected {
+    background: $accent-darken-2;
+    color: $text;
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+#modal_tarea {
+    width: 60%;
+    height: auto;
+    max-width: 70;
+    padding: 2;
+
+    border: solid $accent;
+    background: $panel;
+    color: $text;
+
+    layout: vertical;
+    align-horizontal: center;
+    align-vertical: middle;
+    content-align: center middle;
+}
+
+
+/* título del modal */
+.tarea_title {
+    text-align: center;
+    width: 100%;
+    padding-bottom: 1;
+    border-bottom: solid $accent;
+    text-style: bold;
+}
+
+/* contenido del modal */
+.tarea_content {
+    padding: 1;
+    width: 100%;
+}
+
+
+/* =========================================================
+   BOTONES DEL MODAL
+   ========================================================= */
+
+#botones {
+    layout: horizontal;
+    width: 100%;
+    padding-top: 1;
+
+    /* todos alineados a la izquierda */
+    align-horizontal: left;
+    content-align: left middle;
+}
+
+#botones Button {
+    padding: 0 1;
+    margin-right: 1;  /* sustituto de column-gap */
+}
+
+
+/* =========================================================
+   BOTONES ESTILIZADOS
+   ========================================================= */
+
+#btn_close {
+    background: $error;
+    color: $text;
+}
+
+#btn_edit {
+    background: $warning;
+    color: $text;
+}
+
+#btn_delete {
+    background: $error;
+    color: $text;
+}
+
+#btn_accept:hover {
+    background: #003800;
+    border: solid #094A09;
+    color: white;
+}
+#btn_close:hover {
+    background: #003800;
+    border: solid #094A09;
+    color: white;
+}
+
+Button:hover {
+    background: $accent;
+    color: $text;
+}
+
+
+/* =========================================================
+   Estilo para el TareaForm
+   ========================================================= */
 #status_date_container {
     /* 2. Contenedor de Estatus y Fecha (ocupa 2 columnas del form_grid) */
     grid-size: 2; 

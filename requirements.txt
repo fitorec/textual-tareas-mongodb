@@ -1,0 +1,6 @@
+textual
+pydantic
+python-dotenv
+pymongo
+rich
+pendulum

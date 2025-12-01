@@ -57,7 +57,7 @@ class TareaFormScreen(ModalScreen):
             ),
             Container(
                 Button("Aceptar", variant="default", id="btn_accept", disabled=True),
-                Button("Cancelar", variant="error", id="btn_cancel"),
+                Button("Cancelar", variant="error", id="btn_close"),
                 id="button_container",
             ),
             id="form_grid",
@@ -100,7 +100,7 @@ class TareaFormScreen(ModalScreen):
         self.dismiss({"ok": False})
 
     def on_button_pressed(self, event):
-        if event.button.id == "btn_cancel":
+        if event.button.id == "btn_close":
             self.action_cancel()
         elif event.button.id == "btn_accept":
             if not self.query_one("#btn_accept").disabled:

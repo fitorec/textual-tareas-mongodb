@@ -2,15 +2,16 @@
 from textual.app import ComposeResult
 from textual.screen import Screen, ModalScreen
 from textual.widgets import Header, Footer, DataTable, Static, Button
-from textual.containers import Container
+from textual.containers import Container, Grid
 from textual.binding import Binding
+from rich.console import Console
 
 # Módulos locales del proyecto
 from TareaFormScreen import TareaFormScreen
 from TareaService import TareaService
 
 
-class MessageScreen(ModalScreen):
+class TareaModal(ModalScreen):
     def __init__(self, title, content, **kwargs):
         self.modal_title = title
         self.modal_content = content
@@ -18,19 +19,24 @@ class MessageScreen(ModalScreen):
 
     def compose(self):
         yield Container(
-            Static(self.modal_title, classes="title"),
-            Static(self.modal_content, classes="content"),
-            Button("Cerrar", variant="primary", id="close_btn"),
-            id="modal_container",
+            Static(self.modal_title, classes="tarea_title"),
+            Static(self.modal_content, classes="tarea_content"),
+            Grid(
+                Button("🗙  Cerrar", variant="default", id="btn_close", classes="btn_modal"),
+                Button("✏️  Editar", variant="warning", id="btn_edit", classes="btn_modal"),
+                Button("🗑  Borrar", variant="error", id="btn_delete", classes="btn_modal"),
+                id="botones",
+            ),
+            id="modal_tarea",
         )
 
     def on_button_pressed(self, event):
-        if event.button.id == "close_btn":
-            self.dismiss()
+        action = event.button.id.split('_').pop()
+        self.dismiss({"action": action})
 
     def on_key(self, event):
-        if event.key == "escape":
-            self.dismiss()
+        if event.key == "escape" or  event.key == "q":
+            self.dismiss({"action": 'close'})
 
 
 class MainScreen(Screen):
@@ -86,7 +92,7 @@ class MainScreen(Screen):
             self.table.move_cursor(row=0, column=0)
 
     def _get_selected_row_id(self):
-        """Obtiene el row_key de la fila seleccionada usando la API oficial."""
+        """Obtiene el ID desde la primera columna (ID) del renglón seleccionado."""
         try:
             # Obtiene las coordenadas del cursor actual
             cursor_coord = self.table.cursor_coordinate
@@ -94,21 +100,16 @@ class MainScreen(Screen):
                 self.app.notify("Ninguna tarea seleccionada.", severity="warning")
                 return None
 
-            # Usa la API oficial para obtener el row_key desde las coordenadas del cursor
-            row_key, _ = self.table.coordinate_to_cell_key(cursor_coord)
-
-            # ← FIX: RowKey se convierte correctamente a string con str()
-            row_key_str = str(row_key)
-
-            # Convierte a int si es posible
+            cellID = self.table.get_cell_at(cursor_coord)
             try:
-                return int(row_key_str)
-            except ValueError:
-                return row_key_str
+                return int(cellID)
+            except (ValueError, TypeError):
+                self.app.notify(f"ID inválido: {int(cellID)}", severity="error")
 
         except Exception as e:
-            self.app.notify(f"Error obteniendo ID de fila: {str(e)}", severity="error")
+            self.app.notify(f"Error obteniendo ID: {str(e)}", severity="error")
             return None
+
 
 
     # ---------- acciones (usando run_worker para poder await push_screen_wait) ----------
@@ -163,7 +164,7 @@ class MainScreen(Screen):
 
         self.refresh_table()
 
-    def action_read_task(self):
+    async def action_read_task(self):
         """Mostrar modal de solo lectura."""
         task_id = self._get_selected_row_id()
         if task_id is None:
@@ -182,7 +183,23 @@ class MainScreen(Screen):
             f"Fecha: {tarea['fecha']}"
         )
 
-        self.app.push_screen(MessageScreen("Detalles de la Tarea", content))
+        # self.app.push_screen(
+        #     TareaModal("Detalles de la Tarea", content)
+        # )
+        self.app.run_worker(self._worker_read_task(content), exclusive=True)
+
+    async def _worker_read_task(self, content):
+        result = await self.app.push_screen_wait(
+            TareaModal("Detalles de la Tarea", content)
+        )
+
+        if result and result.get("action"):
+            match result.get("action"):
+                case 'edit':
+                    self.action_update_task()
+                case 'delete':
+                    self.action_delete_task()
+
 
     def action_delete_task(self):
         """Borrar tarea seleccionada."""

@@ -29,18 +29,15 @@ else:
         
         # Crear la base de datos (lazy creation)
         db = client[MONGO_DB_NAME]
-        
-        # Obtener la colección (lazy creation)
-        tareas_collection: Collection = db.tareas
+        # Obtener la colección
         
         # Configurar índice único sobre el campo 'id'
         # Esto se ejecuta solo si la conexión es exitosa
-        tareas_collection.create_index(
+        db.tareas.create_index(
             [("id", ASCENDING)], 
             unique=True,
             background=True
         )
-        print("INFO: Conexión a MongoDB establecida y colección 'tareas' lista.")
         
     except ConnectionFailure:
         print(f"ERROR: No se pudo conectar a MongoDB en {MONGO_URI}. Asegúrate de que el servidor esté corriendo.")

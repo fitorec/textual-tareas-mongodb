@@ -12,7 +12,6 @@ class TareaService:
     @classmethod
     def list(cls) -> list[dict]:
         """Devuelve todas las tareas ordenadas por ID (int)."""
-        # ⚠️ Verificación explícita
         if cls._collection is None: return [] 
         # Excluir el campo '_id' de MongoDB para simplicidad
         return list(cls._collection.find({}, {"_id": 0}).sort("id", 1))

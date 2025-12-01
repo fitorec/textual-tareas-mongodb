@@ -5,6 +5,7 @@ from textual.widgets import Header, Footer, DataTable, Static, Button
 from textual.containers import Container
 from textual.binding import Binding
 
+# Módulos locales del proyecto
 from TareaFormScreen import TareaFormScreen
 from TareaService import TareaService
 
@@ -42,7 +43,11 @@ class MainScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        self.table = DataTable(id="task_table")
+        self.table = DataTable(
+            id="task_table",
+            cursor_type="row",  # Selección por fila completa
+            zebra_stripes=True,
+        )
         self.table.add_column("ID", key="id")
         self.table.add_column("Título", key="titulo")
         self.table.add_column("Descripción", key="descripcion")
@@ -68,6 +73,7 @@ class MainScreen(Screen):
             row_id = str(tarea["id"])  # key de la fila
 
             self.table.add_row(
+                str(tarea["id"]),  # ID como string visible en la primera columna
                 tarea["titulo"],
                 tarea["descripcion"],
                 tarea["status"],
@@ -77,31 +83,32 @@ class MainScreen(Screen):
 
         # Si hay filas, mueve el cursor al primer renglón
         if self.table.row_count > 0:
-            # Nuevo método en Textual (API moderna)
-            # self.table.move_cursor(0, 0)
             self.table.move_cursor(row=0, column=0)
 
-
     def _get_selected_row_id(self):
-        """Obtiene el row_key de la fila seleccionada para TwoWayDict en Textual <= 0.38."""
-
-        row_index = self.table.cursor_row
-        if row_index is None:
-            self.app.notify("Ninguna tarea seleccionada.", severity="warning")
-            return None
-
-        # Obtener acceso a la lista de claves internas de TwoWayDict 
+        """Obtiene el row_key de la fila seleccionada usando la API oficial."""
         try:
-            row_keys_list = self.table._row_locations._keys_list
-            real_row_key = row_keys_list[row_index]
-        except Exception:
-            self.app.notify("No se pudo obtener el ID de la fila.", severity="error")
-            return None
+            # Obtiene las coordenadas del cursor actual
+            cursor_coord = self.table.cursor_coordinate
+            if cursor_coord is None:
+                self.app.notify("Ninguna tarea seleccionada.", severity="warning")
+                return None
 
-        try:
-            return int(real_row_key)
-        except:
-            return real_row_key
+            # Usa la API oficial para obtener el row_key desde las coordenadas del cursor
+            row_key, _ = self.table.coordinate_to_cell_key(cursor_coord)
+
+            # ← FIX: RowKey se convierte correctamente a string con str()
+            row_key_str = str(row_key)
+
+            # Convierte a int si es posible
+            try:
+                return int(row_key_str)
+            except ValueError:
+                return row_key_str
+
+        except Exception as e:
+            self.app.notify(f"Error obteniendo ID de fila: {str(e)}", severity="error")
+            return None
 
 
     # ---------- acciones (usando run_worker para poder await push_screen_wait) ----------
@@ -109,11 +116,9 @@ class MainScreen(Screen):
     def action_create_task(self):
         """Lanza el worker que abrirá el formulario y esperará su dismiss()."""
         self.app.notify("Abriendo formulario para crear...", severity="info")
-        # run_worker crea el worker necesario para push_screen_wait
         self.app.run_worker(self._worker_create_task(), exclusive=True)
 
     async def _worker_create_task(self):
-        # Dentro del worker sí podemos usar push_screen_wait
         result = await self.app.push_screen_wait(TareaFormScreen(mode="create"))
 
         if not result or not result.get("ok"):
@@ -121,7 +126,6 @@ class MainScreen(Screen):
             return
 
         data = result["data"]
-
         nueva = TareaService.insert(data)
         if nueva:
             self.app.notify(f"Tarea {nueva['id']} creada.", severity="success")
@@ -160,7 +164,7 @@ class MainScreen(Screen):
         self.refresh_table()
 
     def action_read_task(self):
-        """Mostrar modal de solo lectura (no necesitamos esperar el dismiss)."""
+        """Mostrar modal de solo lectura."""
         task_id = self._get_selected_row_id()
         if task_id is None:
             return
@@ -178,11 +182,10 @@ class MainScreen(Screen):
             f"Fecha: {tarea['fecha']}"
         )
 
-        # Mostrar sin esperar (lectura simple)
         self.app.push_screen(MessageScreen("Detalles de la Tarea", content))
 
     def action_delete_task(self):
-        """Borrar (sin modal de confirmación aquí)."""
+        """Borrar tarea seleccionada."""
         task_id = self._get_selected_row_id()
         if task_id is None:
             return

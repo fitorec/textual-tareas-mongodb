@@ -6,6 +6,11 @@ from textual.containers import Container, Grid
 from datetime import date
 import pendulum
 
+# 🔥 Importamos tu modelo Pydantic
+from TareaSchema import TareaSchema
+from pydantic import ValidationError
+
+
 class TareaFormScreen(ModalScreen):
     """Formulario para crear/editar tarea — devuelve dict via dismiss(resultado)."""
     CSS_PATH = "style.css"
@@ -14,7 +19,7 @@ class TareaFormScreen(ModalScreen):
 
     STATUS_OPTIONS = [
         ("Pendiente", "pendiente"),
-        ("En Proceso", "en proceso"),
+        ("En Proceso", "en_progreso"),
         ("Hecho", "hecho"),
     ]
 
@@ -96,7 +101,6 @@ class TareaFormScreen(ModalScreen):
 
     # ACCIONES
     def action_cancel(self):
-        # devuelve un resultado indicando cancelación
         self.dismiss({"ok": False})
 
     def on_button_pressed(self, event):
@@ -107,6 +111,7 @@ class TareaFormScreen(ModalScreen):
                 self._submit_form()
 
     def _submit_form(self):
+        # --- 1) Construcción de fecha (sin tocar lo que ya tenía tu implementación)
         try:
             year = int(self.query_one("#date_year").value)
             month = int(self.query_one("#date_month").value)
@@ -116,6 +121,7 @@ class TareaFormScreen(ModalScreen):
             self.app.notify("Error en la fecha.", severity="error")
             return
 
+        # --- 2) Construir dict tal como antes
         data = {
             "titulo": self.query_one("#titulo_input").value,
             "descripcion": self.query_one("#descripcion_textarea").text.strip(),
@@ -125,6 +131,16 @@ class TareaFormScreen(ModalScreen):
 
         if self.mode == "update":
             data["id"] = self.tarea.get("id")
+        else:
+            # Pydantic exige id en tu modelo, para creación usamos 0 (lo asignas luego)
+            data["id"] = 0
+        try:
+            TareaSchema(**data)   # si falla: entra al except
+        except ValidationError as e:
+            # Convertimos errores en líneas legibles
+            mensajes = "\n".join(err["msg"] for err in e.errors())
+            self.app.notify(mensajes, severity="error")
+            return
 
-        # Devuelve valor al pop/await del push_screen
+        # --- 4) Si todo es correcto, se devuelve tal como antes
         self.dismiss({"ok": True, "data": data})

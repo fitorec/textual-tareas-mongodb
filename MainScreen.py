@@ -48,7 +48,7 @@ class MainScreen(Screen):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
+        yield Header(name="Tareas Mongo CRUD")
         self.table = DataTable(
             id="task_table",
             cursor_type="row",  # Selección por fila completa

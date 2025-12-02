@@ -1,9 +1,7 @@
 # Textual Tareas MongoDB
 
 
-[![Textual Tareas CRUD con MongoDB
-](https://img.youtube.com/vi/S21cXtPSjeE/0.jpg)]([![Video Title](https://img.youtube.com/vi/S21cXtPSjeE/0.jpg)](https://www.youtube.com/watch?v=S21cXtPSjeE))
-
+[![Textual Tareas CRUD con MongoDB](https://img.youtube.com/vi/S21cXtPSjeE/0.jpg)](https://www.youtube.com/watch?v=S21cXtPSjeE)
 
 
 Aplicación TUI construida con **Textual**, **MongoDB**, **Pydantic** y arquitectura modular.  

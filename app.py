@@ -21,7 +21,7 @@ class TareasApp(App):
 
 def show_conky():
     tareas = TareaService.list()
-    font = "DejaVu Sans Mono";
+    font = "DejaVu Sans Mono"
     color_date = "white"
 
     for t in tareas:

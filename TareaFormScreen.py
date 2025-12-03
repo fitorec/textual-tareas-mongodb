@@ -6,7 +6,6 @@ from textual.containers import Container, Grid
 from datetime import date
 import pendulum
 
-# 🔥 Importamos tu modelo Pydantic
 from TareaSchema import TareaSchema
 from pydantic import ValidationError
 
@@ -33,7 +32,11 @@ class TareaFormScreen(ModalScreen):
         if self.mode == "update" and self.tarea.get("fecha"):
             try:
                 initial_date = pendulum.parse(self.tarea["fecha"])
-            except:
+            except Exception as e:
+                self.app.notify(
+                    f"Error al interpretar la fecha almacenada: {e}",
+                    severity="error"
+                )
                 initial_date = pendulum.today().add(weeks=1)
         else:
             initial_date = pendulum.today().add(weeks=1)

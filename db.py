@@ -5,7 +5,6 @@ from pymongo import MongoClient
 from pymongo import ASCENDING
 from pymongo.errors import ConnectionFailure, OperationFailure
 from pymongo.database import Database
-from pymongo.collection import Collection
 
 # Cargar configuración desde .env
 load_dotenv()

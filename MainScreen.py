@@ -4,7 +4,6 @@ from textual.screen import Screen, ModalScreen
 from textual.widgets import Header, Footer, DataTable, Static, Button
 from textual.containers import Container, Grid
 from textual.binding import Binding
-from rich.console import Console
 
 # Módulos locales del proyecto
 from TareaFormScreen import TareaFormScreen
